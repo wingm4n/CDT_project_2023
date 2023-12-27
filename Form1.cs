@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
@@ -8,36 +6,39 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
-using System.Runtime.InteropServices;
 using AForge.Video.DirectShow;
 using NAudio.Wave;
-using NAudio.CoreAudioApi;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolBar;
 
 namespace Double
 {
     public partial class Form1 : Form
     {
 
-        private bool Sound_connection;
+        private bool Audio_connection;
         //сокет отправитель
-        Socket Sound_Sender;
+        Socket Audio_Sender;
         //поток для нашей речи
-        WaveIn Sound_Record;
+        WaveIn Audio_Record;
         //поток для речи собеседника
-        WaveOut Sound_Play;
+        WaveOut Audio_Play;
         //буфферный поток для передачи через сеть
-        BufferedWaveProvider Sound_bufferStream;
+        BufferedWaveProvider Audio_bufferStream;
         //сокет для приема (протокол UDP)
-        Socket Sound_Receiver;
+        Socket Audio_Receiver;
         private static IPEndPoint consumerEndPoint;
         private static UdpClient UdpClient = new UdpClient();
+
+
+        private IPAddress Connection_Ip = IPAddress.Parse(ConfigurationManager.AppSettings.Get("Connection_Ip"));
+        private int My_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Audio_Port"));
+        private int My_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Video_Port"));
+        private int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
+        private int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
+
+        
 
         public Form1()
         {
@@ -47,33 +48,35 @@ namespace Double
         private void Microphone_Init()
         {
             //создаем поток для записи нашей речи
-            Sound_Record = new WaveIn();
+            Audio_Record = new WaveIn();
             //определяем его формат - частота дискретизации 8000 Гц, ширина сэмпла - 16 бит, 1 канал - моно
-            Sound_Record.WaveFormat = new WaveFormat(8000, 16, 1);
+            Audio_Record.WaveFormat = new WaveFormat(8000, 16, 1);
             //добавляем код обработки нашего голоса, поступающего на микрофон
-            Sound_Record.DataAvailable += Voice_Input;
+            Audio_Record.DataAvailable += Voice_Input;
             //создаем поток для прослушивания входящего звука
-            Sound_Play = new WaveOut();
+            Audio_Play = new WaveOut();
             //создаем поток для буферного потока и определяем у него такой же формат как и потока с микрофона
-            Sound_bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
+            Audio_bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
             //привязываем поток входящего звука к буферному потоку
-            Sound_Play.Init(Sound_bufferStream);
+            Audio_Play.Init(Audio_bufferStream);
             //сокет для отправки звука
-            Sound_Sender = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            Sound_Receiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            Sound_connection = true;
+            Audio_Sender = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Audio_Receiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Audio_connection = true;
         }
         private async void Form1_Load(object sender, EventArgs e)
         {
 
             Microphone_Init();
 
+            var Connection_Ip = ConfigurationManager.AppSettings.Get("Connection_Ip");
+
             //создаем поток для прослушивания
             Thread THREAD_Sound_Listen = new Thread(new ThreadStart(Listening));
             //запускаем его
             THREAD_Sound_Listen.Start();
 
-            Thread THREAD_Sound_Send = new Thread(new ThreadStart(Sound_Record.StartRecording));
+            Thread THREAD_Sound_Send = new Thread(new ThreadStart(Audio_Record.StartRecording));
             THREAD_Sound_Send.Start();
 
             Thread THREAD_Video_Send = new Thread(new ThreadStart(SenderMain));
@@ -81,12 +84,12 @@ namespace Double
 
             Thread.Sleep(0);
 
-            var port = int.Parse(ConfigurationManager.AppSettings.Get("port"));
-            var client = new UdpClient(port);
+            
+            var Video_Recieve = new UdpClient(Conn_Video_Port);
 
             while (true)
             {
-                var data = await client.ReceiveAsync();
+                var data = await Video_Recieve.ReceiveAsync();
                 using (var ms = new MemoryStream(data.Buffer))
                 {
                     pictureBox1.Image = new Bitmap(ms);
@@ -97,35 +100,34 @@ namespace Double
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
-            Sound_connection = false;
-            Sound_Receiver.Close();
-            Sound_Receiver.Dispose();
+            Audio_connection = false;
+            Audio_Receiver.Close();
+            Audio_Receiver.Dispose();
 
-            Sound_Sender.Close();
-            Sound_Sender.Dispose();
-            if (Sound_Play != null)
+            Audio_Sender.Close();
+            Audio_Sender.Dispose();
+            if (Audio_Play != null)
             {
-                Sound_Play.Stop();
-                Sound_Play.Dispose();
-                Sound_Play = null;
+                Audio_Play.Stop();
+                Audio_Play.Dispose();
+                Audio_Play = null;
             }
-            if (Sound_Record != null)
+            if (Audio_Record != null)
             {
-                Sound_Record.Dispose();
-                Sound_Record = null;
+                Audio_Record.Dispose();
+                Audio_Record = null;
             }
-            Sound_bufferStream = null;
+            Audio_bufferStream = null;
         }
 
         private void Voice_Input(object sender, WaveInEventArgs e)
         {
             try
             {
-                var consumerIp = ConfigurationManager.AppSettings.Get("consumerIp");
                 //Подключаемся к удаленному адресу
-                IPEndPoint remote_point = new IPEndPoint(IPAddress.Parse(consumerIp), 5555);
+                IPEndPoint remote_point = new IPEndPoint(Connection_Ip, Conn_Audio_Port);
                 //посылаем байты, полученные с микрофона на удаленный адрес
-                Sound_Sender.SendTo(e.Buffer, remote_point);
+                Audio_Sender.SendTo(e.Buffer, remote_point);
             }
             catch (Exception ex)
             {
@@ -136,24 +138,24 @@ namespace Double
         private void Listening()
         {
             //Прослушиваем по адресу
-            IPEndPoint localIP = new IPEndPoint(IPAddress.Any, 5555);
-            Sound_Receiver.Bind(localIP);
+            IPEndPoint localIP = new IPEndPoint(IPAddress.Any, My_Audio_Port);
+            Audio_Receiver.Bind(localIP);
             //начинаем воспроизводить входящий звук
-            Sound_Play.Play();
-            Sound_Play.Volume = 1; //100%
+            Audio_Play.Play();
+            Audio_Play.Volume = 1; //100%
             //адрес, с которого пришли данные
             EndPoint remoteIp = new IPEndPoint(IPAddress.Any, 0);
             //бесконечный цикл
-            while (Sound_connection == true)
+            while (Audio_connection == true)
             {
                 try
                 {
                     //промежуточный буфер
                     byte[] data = new byte[65535];
                     //получено данных
-                    int received = Sound_Receiver.ReceiveFrom(data, ref remoteIp);
-                    //добавляем данные в буфер, откуда Sound_Play будет воспроизводить звук
-                    Sound_bufferStream.AddSamples(data, 0, received);
+                    int received = Audio_Receiver.ReceiveFrom(data, ref remoteIp);
+                    //добавляем данные в буфер, откуда Audio_Play будет воспроизводить звук
+                    Audio_bufferStream.AddSamples(data, 0, received);
                     Thread.Sleep(10);
                 }
                 catch (SocketException ex)
@@ -164,9 +166,9 @@ namespace Double
 
         static void SenderMain()
         {
-            var consumerIp = ConfigurationManager.AppSettings.Get("consumerIp");
-            var consumerPort = int.Parse(ConfigurationManager.AppSettings.Get("consumerPort"));
-            consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), consumerPort);
+            var consumerIp = ConfigurationManager.AppSettings.Get("Connection_Ip");
+            var consumerPort = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
+            consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), 48654);
 
             FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
