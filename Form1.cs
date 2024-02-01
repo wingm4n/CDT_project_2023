@@ -33,10 +33,10 @@ namespace Double
 
 
         private IPAddress Connection_Ip = IPAddress.Parse(ConfigurationManager.AppSettings.Get("Connection_Ip"));
-        private int My_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Audio_Port"));
-        private int My_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Video_Port"));
-        private int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
-        private int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
+        private static int My_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Audio_Port"));
+        public static int My_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Video_Port"));
+        private static int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
+        private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
 
         
 
@@ -168,7 +168,7 @@ namespace Double
         {
             var consumerIp = ConfigurationManager.AppSettings.Get("Connection_Ip");
             var consumerPort = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
-            consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), 48654);
+            consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), My_Video_Port);
 
             FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
             VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
