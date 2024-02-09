@@ -10,7 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using AForge.Video.DirectShow;
-using NAudio.Wave;
+using NAudio.Wave; 
 
 namespace Double
 {
@@ -37,6 +37,7 @@ namespace Double
         public static int My_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Video_Port"));
         private static int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
         private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
+
 
         
 
@@ -95,6 +96,80 @@ namespace Double
                     pictureBox1.Image = new Bitmap(ms);
                 }
             }
+
+            //NEW RESOLUTION CHANGE FEATURE THERE
+
+            /*
+             
+            byte packageCount;
+
+            while (true)
+            {
+                var data = await Video_Recieve.ReceiveAsync();
+                byte[] picdata = data.Buffer;
+                packageCount = picdata[picdata.Length-1];
+                Array.Resize(ref picdata, picdata.Length-1);
+                
+
+                if (packageCount == 1)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox1.Image = new Bitmap(ms);
+
+                    }
+                }
+
+                if (packageCount == 2)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+                        pictureBox2.Image = new Bitmap(ms);                        
+
+                    }
+                }
+
+                if (packageCount == 3)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox3.Image = new Bitmap(ms);
+
+                    }
+                }
+
+                if (packageCount == 4)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox4.Image = new Bitmap(ms);
+
+                    }
+                }
+
+                if (packageCount == 5)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox5.Image = new Bitmap(ms);
+                    }
+                }
+
+
+                packageCount++;
+           }
+
+        }
+             
+             
+             
+             */
+
+            //END OF NEW CODE
 
         }
 
@@ -180,13 +255,98 @@ namespace Double
 
         private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
         {
-            var bmp = new Bitmap(eventArgs.Frame, 800, 600);
+            var bmp = new Bitmap(eventArgs.Frame, 1920, 1080);
             try
             {
+
+
+
                 using (var ms = new MemoryStream())
                 {
-                    bmp.Save(ms, ImageFormat.Jpeg);
+
+                    RectangleF cloneRect = new RectangleF(0, 0, 1920, 216);
+                    System.Drawing.Imaging.PixelFormat format =
+                        bmp.PixelFormat;
+                    Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
+
+                    cloneBitmap.Save(ms, ImageFormat.Jpeg);
                     var bytes = ms.ToArray();
+
+                    Array.Resize(ref bytes, bytes.Length + 1);
+                    bytes[bytes.Length-1] = 1;
+
+                    UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
+
+                }
+
+                using (var ms = new MemoryStream())
+                {
+
+                    RectangleF cloneRect = new RectangleF(0, 217, 1920, 216);
+                    System.Drawing.Imaging.PixelFormat format =
+                        bmp.PixelFormat;
+                    Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
+
+                    cloneBitmap.Save(ms, ImageFormat.Jpeg);
+                    var bytes = ms.ToArray();
+
+                    Array.Resize(ref bytes, bytes.Length + 1);
+                    bytes[bytes.Length-1] = 2;
+
+                    UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
+
+                }
+
+                using (var ms = new MemoryStream())
+                {
+
+                    RectangleF cloneRect = new RectangleF(0, 433, 1920, 216);
+                    System.Drawing.Imaging.PixelFormat format =
+                        bmp.PixelFormat;
+                    Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
+
+                    cloneBitmap.Save(ms, ImageFormat.Jpeg);
+                    var bytes = ms.ToArray();
+
+                    Array.Resize(ref bytes, bytes.Length + 1);
+                    bytes[bytes.Length-1] = 3;
+
+                    UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
+
+                }
+
+                using (var ms = new MemoryStream())
+                {
+
+                    RectangleF cloneRect = new RectangleF(0, 649, 1920, 216);
+                    System.Drawing.Imaging.PixelFormat format =
+                        bmp.PixelFormat;
+                    Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
+
+                    cloneBitmap.Save(ms, ImageFormat.Jpeg);
+                    var bytes = ms.ToArray();
+
+                    Array.Resize(ref bytes, bytes.Length + 1);
+                    bytes[bytes.Length-1] = 4;
+
+                    UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
+
+                }
+
+                using (var ms = new MemoryStream())
+                {
+
+                    RectangleF cloneRect = new RectangleF(0, 865, 1920, 216);
+                    System.Drawing.Imaging.PixelFormat format =
+                        bmp.PixelFormat;
+                    Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
+
+                    cloneBitmap.Save(ms, ImageFormat.Jpeg);
+                    var bytes = ms.ToArray();
+
+                    Array.Resize(ref bytes, bytes.Length + 1);
+                    bytes[bytes.Length-1] = 5;
+
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
                     Thread.Sleep(0);
                 }
