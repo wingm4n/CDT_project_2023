@@ -10,8 +10,9 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using AForge.Video.DirectShow;
-using NAudio.Wave; 
-
+using NAudio.Wave;
+using System.Security.Cryptography;
+using System.Text;
 namespace Double
 {
     public partial class Form1 : Form
@@ -217,7 +218,7 @@ namespace Double
             Audio_Receiver.Bind(localIP);
             //начинаем воспроизводить входящий звук
             Audio_Play.Play();
-            Audio_Play.Volume = 1; //100%
+            Audio_Play.Volume = 1;
             //адрес, с которого пришли данные
             EndPoint remoteIp = new IPEndPoint(IPAddress.Any, 0);
             //бесконечный цикл
@@ -231,10 +232,11 @@ namespace Double
                     int received = Audio_Receiver.ReceiveFrom(data, ref remoteIp);
                     //добавляем данные в буфер, откуда Audio_Play будет воспроизводить звук
                     Audio_bufferStream.AddSamples(data, 0, received);
-                    Thread.Sleep(10);
+                    Thread.Sleep(0);
                 }
                 catch (SocketException ex)
-                { }
+                {// обработка исключения
+                }
             }
         }
 
@@ -253,6 +255,66 @@ namespace Double
 
         }
 
+        public class Cryptor
+        {
+            public static string GenerateKey()
+            {
+                var desCrypto = (DESCryptoServiceProvider)DES.Create();
+
+                return Encoding.ASCII.GetString(desCrypto.Key);
+            }
+
+            public static MemoryStream Encrypt(Stream fsInput, string sKey)
+            {
+                var fsEncrypted = new MemoryStream();
+
+                var des = new DESCryptoServiceProvider
+                {
+                    Key = Encoding.ASCII.GetBytes(sKey),
+                    IV = Encoding.ASCII.GetBytes(sKey)
+                };
+                var desencrypt = des.CreateEncryptor();
+                var cryptostream = new CryptoStream(fsEncrypted, desencrypt, CryptoStreamMode.Write);
+
+                var bytearrayinput = new byte[fsInput.Length];
+                fsInput.Read(bytearrayinput, 0, bytearrayinput.Length);
+                cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
+
+                cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
+                cryptostream.FlushFinalBlock();
+
+                fsEncrypted.Flush();
+                fsEncrypted.Position = 0;
+                return fsEncrypted;
+            }
+
+            public static MemoryStream Decrypt(Stream fsread, string sKey)
+            {
+                var des = new DESCryptoServiceProvider
+                {
+                    Key = Encoding.ASCII.GetBytes(sKey),
+                    IV = Encoding.ASCII.GetBytes(sKey)
+                };
+
+                var sOutputFilename = new MemoryStream();
+                var desdecrypt = des.CreateDecryptor();
+                var cryptostreamDecr = new CryptoStream(fsread, desdecrypt, CryptoStreamMode.Read);
+
+                var fsDecrypted = new StreamWriter(sOutputFilename);
+                fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
+                fsDecrypted.Flush();
+                fsDecrypted.Close();
+                sOutputFilename.Position = 0;
+
+                return sOutputFilename;
+            }
+
+        }
+
+
+        private static string sSecretKey = Cryptor.GenerateKey();
+
+
         private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
         {
             var bmp = new Bitmap(eventArgs.Frame, 1920, 1080);
@@ -270,6 +332,9 @@ namespace Double
                     Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
 
                     cloneBitmap.Save(ms, ImageFormat.Jpeg);
+
+                    var encryptedContent = Cryptor.Encrypt(ms, sSecretKey);
+
                     var bytes = ms.ToArray();
 
                     Array.Resize(ref bytes, bytes.Length + 1);
