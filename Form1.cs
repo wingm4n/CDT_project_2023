@@ -85,37 +85,27 @@ namespace Double
 
             Thread.Sleep(0);
 
-            
+
             var Video_Recieve = new UdpClient(Conn_Video_Port);
 
-            while (true)
-            {
-                var data = await Video_Recieve.ReceiveAsync();
-                using (var ms = new MemoryStream(data.Buffer))
-                {
-                    pictureBox1.Image = new Bitmap(ms);
-                }
-            }
-
-            //NEW RESOLUTION CHANGE FEATURE THERE
-
-            /*
-             
             byte packageCount;
 
             while (true)
             {
                 var data = await Video_Recieve.ReceiveAsync();
                 byte[] picdata = data.Buffer;
-                packageCount = picdata[picdata.Length-1];
-                Array.Resize(ref picdata, picdata.Length-1);
-                
+                packageCount = picdata[picdata.Length - 1];
+                Array.Resize(ref picdata, picdata.Length - 1);
+
 
                 if (packageCount == 1)
                 {
                     using (var ms = new MemoryStream(picdata))
                     {
 
+                        //           var key = "cR??7[?|";
+
+                        //        cryptor.Decrypt(ms, key);
                         pictureBox1.Image = new Bitmap(ms);
 
                     }
@@ -125,7 +115,7 @@ namespace Double
                 {
                     using (var ms = new MemoryStream(picdata))
                     {
-                        pictureBox2.Image = new Bitmap(ms);                        
+                        pictureBox2.Image = new Bitmap(ms);
 
                     }
                 }
@@ -161,15 +151,7 @@ namespace Double
 
 
                 packageCount++;
-           }
-
-        }
-             
-             
-             
-             */
-
-            //END OF NEW CODE
+            }
 
         }
 
