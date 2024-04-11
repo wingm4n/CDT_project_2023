@@ -14,6 +14,9 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 using AForge.Video.DirectShow;
 using NAudio.Wave;
+using System.Diagnostics.Tracing;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Double
 {
@@ -67,6 +70,35 @@ namespace Double
             Audio_Receiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Audio_connection = true;
         }
+
+        public class cryptor
+        {
+
+
+            public static MemoryStream Decrypt(Stream fsread, string sKey)
+            {
+                var des = new DESCryptoServiceProvider
+                {
+                    Key = Encoding.ASCII.GetBytes(sKey),
+                    IV = Encoding.ASCII.GetBytes(sKey)
+                };
+
+                des.Padding = PaddingMode.Zeros;
+
+                var sOutputFilename = new MemoryStream();
+                var desdecrypt = des.CreateDecryptor();
+                var cryptostreamDecr = new CryptoStream(fsread, desdecrypt, CryptoStreamMode.Read);
+
+                var fsDecrypted = new StreamWriter(sOutputFilename);
+                fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
+                fsDecrypted.Flush();
+                fsDecrypted.Close();
+
+
+                return sOutputFilename;
+            }
+
+        }
         private async void Form1_Load(object sender, EventArgs e)
         {
 
@@ -95,13 +127,68 @@ namespace Double
             while (true)
             {
                 var data = await Video_Recieve.ReceiveAsync();
-                using (var ms = new MemoryStream(data.Buffer))
+                byte[] picdata = data.Buffer;
+                packageCount = picdata[picdata.Length - 1];
+                Array.Resize(ref picdata, picdata.Length - 1);
+
+
+                if (packageCount == 1)
                 {
-                    pictureBox1.Image = new Bitmap(ms);
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+              //           var key = "cR??7[?|";
+              
+              //        cryptor.Decrypt(ms, key);
+                        pictureBox1.Image = new Bitmap(ms);
+
+                    }
                 }
+
+                if (packageCount == 2)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+                        pictureBox2.Image = new Bitmap(ms);
+
+                    }
+                }
+
+                if (packageCount == 3)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox3.Image = new Bitmap(ms);
+
+                    }
+                }
+
+                if (packageCount == 4)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox4.Image = new Bitmap(ms);
+
+                    }
+                }
+
+                if (packageCount == 5)
+                {
+                    using (var ms = new MemoryStream(picdata))
+                    {
+
+                        pictureBox5.Image = new Bitmap(ms);
+                    }
+                }
+
+
+                packageCount++;
             }
 
         }
+    
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -176,14 +263,14 @@ namespace Double
             consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), My_Video_Port);
 
             FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
-            VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[3].MonikerString);
+            VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
             videoSource.NewFrame += VideoSource_NewFrame;
             videoSource.Start();
 
 
         }
 
-        private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
+private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
         {
             var bmp = new Bitmap(eventArgs.Frame, 1920, 1080);
             try
