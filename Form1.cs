@@ -1,7 +1,10 @@
-﻿using System;
+﻿using AForge.Video.DirectShow;
+using NAudio.Wave;
+using System;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -10,7 +13,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Drawing.Imaging;
 using AForge.Video.DirectShow;
-using NAudio.Wave; 
+using NAudio.Wave;
 
 namespace Double
 {
@@ -37,7 +40,6 @@ namespace Double
         public static int My_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("My_Video_Port"));
         private static int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
         private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
-
 
         
 
@@ -85,8 +87,10 @@ namespace Double
 
             Thread.Sleep(0);
 
-            
+
             var Video_Recieve = new UdpClient(Conn_Video_Port);
+
+            byte packageCount;
 
             while (true)
             {
@@ -96,80 +100,6 @@ namespace Double
                     pictureBox1.Image = new Bitmap(ms);
                 }
             }
-
-            //NEW RESOLUTION CHANGE FEATURE THERE
-
-            /*
-             
-            byte packageCount;
-
-            while (true)
-            {
-                var data = await Video_Recieve.ReceiveAsync();
-                byte[] picdata = data.Buffer;
-                packageCount = picdata[picdata.Length-1];
-                Array.Resize(ref picdata, picdata.Length-1);
-                
-
-                if (packageCount == 1)
-                {
-                    using (var ms = new MemoryStream(picdata))
-                    {
-
-                        pictureBox1.Image = new Bitmap(ms);
-
-                    }
-                }
-
-                if (packageCount == 2)
-                {
-                    using (var ms = new MemoryStream(picdata))
-                    {
-                        pictureBox2.Image = new Bitmap(ms);                        
-
-                    }
-                }
-
-                if (packageCount == 3)
-                {
-                    using (var ms = new MemoryStream(picdata))
-                    {
-
-                        pictureBox3.Image = new Bitmap(ms);
-
-                    }
-                }
-
-                if (packageCount == 4)
-                {
-                    using (var ms = new MemoryStream(picdata))
-                    {
-
-                        pictureBox4.Image = new Bitmap(ms);
-
-                    }
-                }
-
-                if (packageCount == 5)
-                {
-                    using (var ms = new MemoryStream(picdata))
-                    {
-
-                        pictureBox5.Image = new Bitmap(ms);
-                    }
-                }
-
-
-                packageCount++;
-           }
-
-        }
-             
-             
-             
-             */
-
-            //END OF NEW CODE
 
         }
 
@@ -246,7 +176,7 @@ namespace Double
             consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), My_Video_Port);
 
             FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
-            VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
+            VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[3].MonikerString);
             videoSource.NewFrame += VideoSource_NewFrame;
             videoSource.Start();
 
@@ -356,12 +286,13 @@ namespace Double
             {
             }
         }
-    
+
 
         private void pictureBox1_DoubleClick(object sender, EventArgs e)
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
             MessageBox.Show(string.Join("\n", host.AddressList.Where(i => i.AddressFamily == AddressFamily.InterNetwork)));
         }
+
     }
 }
