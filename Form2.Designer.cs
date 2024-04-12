@@ -124,6 +124,7 @@ namespace Double
             this.checkBox1.TabIndex = 4;
             this.checkBox1.Text = "Подключиться без видео";
             this.checkBox1.UseVisualStyleBackColor = false;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // checkBox2
             // 
@@ -138,6 +139,7 @@ namespace Double
             this.checkBox2.TabIndex = 4;
             this.checkBox2.Text = "Подключиться без звука";
             this.checkBox2.UseVisualStyleBackColor = false;
+            this.checkBox2.CheckedChanged += new System.EventHandler(this.checkBox2_CheckedChanged);
             // 
             // checkBox3
             // 
@@ -153,6 +155,7 @@ namespace Double
             this.checkBox3.TabIndex = 4;
             this.checkBox3.Text = "Показывать имя";
             this.checkBox3.UseVisualStyleBackColor = false;
+            this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox3_CheckedChanged);
             // 
             // pictureBox2
             // 
@@ -177,6 +180,7 @@ namespace Double
             this.checkBox4.TabIndex = 4;
             this.checkBox4.Text = "Показывать IP";
             this.checkBox4.UseVisualStyleBackColor = false;
+            this.checkBox4.CheckedChanged += new System.EventHandler(this.checkBox4_CheckedChanged);
             // 
             // textBox1
             // 
@@ -185,6 +189,7 @@ namespace Double
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(215, 34);
             this.textBox1.TabIndex = 6;
+            this.textBox1.TextChanged += new System.EventHandler(this.textBox1_TextChanged);
             // 
             // label2
             // 

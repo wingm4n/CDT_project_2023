@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using System.Threading;
 using System.Net;
 using System.Net.Sockets;
+using System.Configuration;
 
 namespace Double
 {
@@ -20,17 +21,105 @@ namespace Double
             InitializeComponent();
         }
 
+        static void UpdateAppSettings(string key, string value)
+        {
+            try
+            {
+                var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                var settings = configFile.AppSettings.Settings;
+                if (settings[key] == null)
+                {
+                    settings.Add(key, value);
+                }
+                else
+                {
+                    settings[key].Value = value;
+                }
+                configFile.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+            }
+            catch (ConfigurationErrorsException)
+            {
+                Console.WriteLine("Error writing app settings");
+            }
+        }
+    
 
-        async Task DelayAsync()
+
+    async Task DelayAsync()
         {
             await Task.Delay(10);
         }
         private async void Form2_Load(object sender, EventArgs e){
 
+            /*Начальная настройка элементов меню */
             DateTime dt = DateTime.Now;
 
-            var host = Dns.GetHostEntry(Dns.GetHostName());
-            label5.Text = "Ваш IP:    " + host.AddressList[host.AddressList.Length-1].ToString();
+            UpdateAppSettings("My_IP", ""); //for auto-refinding IP every time
+
+            string cur_IP = ConfigurationManager.AppSettings.Get("My_IP");
+
+            if (cur_IP == "")
+            {
+
+                int findIp = 0;
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+
+                for (int i = 0; i <= host.AddressList.Length - 1; i++)
+                {
+                    if (host.AddressList[i].AddressFamily == AddressFamily.InterNetwork) { findIp = i; }
+                }
+
+                label5.Text = "Ваш IP:    " + host.AddressList[findIp].ToString();
+                UpdateAppSettings("My_IP", host.AddressList[findIp].ToString());
+            }
+            else
+            {
+                label5.Text = "Ваш IP:    " + cur_IP;
+            }
+
+            textBox1.Text = ConfigurationManager.AppSettings.Get("My_Name");
+
+            string cur_Set = ConfigurationManager.AppSettings.Get("My_Settings");
+
+            if (cur_Set[0]=='1')
+            {
+                checkBox1.Checked = true;
+            }
+            else
+            {
+                checkBox1.Checked = false;
+            }
+
+            if (cur_Set[1] == '1')
+            {
+                checkBox2.Checked = true;
+            }
+            else
+            {
+                checkBox2.Checked = false;
+            }
+
+            if (cur_Set[2] == '1')
+            {
+                checkBox3.Checked = true;
+            }
+            else
+            {
+                checkBox3.Checked = false;
+            }
+
+            if (cur_Set[3] == '1')
+            {
+                checkBox4.Checked = true;
+            }
+            else
+            {
+                checkBox4.Checked = false;
+            }
+
+
+            /*-----------*/
 
             while (true)
             {
@@ -157,6 +246,72 @@ namespace Double
          f1 = new Form1();
             f1.Show();
         }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            UpdateAppSettings("My_Name", textBox1.Text);
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            string cur_Set = ConfigurationManager.AppSettings.Get("My_Settings");
+            char[] cur_Set_char = cur_Set.ToCharArray(); 
+
+            if (checkBox1.Checked == true)
+            {
+                cur_Set_char[0] = '1';
+            }
+            else { cur_Set_char[0] = '0'; }
+
+            string s1 = new string(cur_Set_char);
+            UpdateAppSettings("My_Settings", s1);
+            
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)
+        {
+            string cur_Set = ConfigurationManager.AppSettings.Get("My_Settings");
+            char[] cur_Set_char = cur_Set.ToCharArray();
+
+            if (checkBox2.Checked == true)
+            {
+                cur_Set_char[1] = '1';
+            }
+            else { cur_Set_char[1] = '0'; }
+
+            string s1 = new string(cur_Set_char);
+            UpdateAppSettings("My_Settings", s1);
+        }
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)
+        {
+            string cur_Set = ConfigurationManager.AppSettings.Get("My_Settings");
+            char[] cur_Set_char = cur_Set.ToCharArray();
+
+            if (checkBox3.Checked == true)
+            {
+                cur_Set_char[2] = '1';
+            }
+            else { cur_Set_char[2] = '0'; }
+
+            string s1 = new string(cur_Set_char);
+            UpdateAppSettings("My_Settings", s1);
+        }
+
+        private void checkBox4_CheckedChanged(object sender, EventArgs e)
+        {
+            string cur_Set = ConfigurationManager.AppSettings.Get("My_Settings");
+            char[] cur_Set_char = cur_Set.ToCharArray();
+
+            if (checkBox4.Checked == true)
+            {
+                cur_Set_char[3] = '1';
+            }
+            else { cur_Set_char[3] = '0'; }
+
+            string s1 = new string(cur_Set_char);
+            UpdateAppSettings("My_Settings", s1);
+        }
+
 
     }
 }
