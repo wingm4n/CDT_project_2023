@@ -1,10 +1,7 @@
-﻿using AForge.Video.DirectShow;
-using NAudio.Wave;
-using System;
+﻿using System;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -14,8 +11,6 @@ using System.Windows.Forms;
 using System.Drawing.Imaging;
 using AForge.Video.DirectShow;
 using NAudio.Wave;
-using System.Diagnostics.Tracing;
-using System.Security.Cryptography;
 using System.Text;
 
 namespace Double
@@ -44,11 +39,36 @@ namespace Double
         private static int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
         private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
 
-        
+
+
 
         public Form1()
         {
             InitializeComponent();
+        }
+
+
+        static void UpdateAppSettings(string key, string value)
+        {
+            try
+            {
+                var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                var settings = configFile.AppSettings.Settings;
+                if (settings[key] == null)
+                {
+                    settings.Add(key, value);
+                }
+                else
+                {
+                    settings[key].Value = value;
+                }
+                configFile.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+            }
+            catch (ConfigurationErrorsException)
+            {
+                Console.WriteLine("Error writing app settings");
+            }
         }
 
         private void Microphone_Init()
@@ -70,41 +90,11 @@ namespace Double
             Audio_Receiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Audio_connection = true;
         }
-
-        public class cryptor
-        {
-
-
-            public static MemoryStream Decrypt(Stream fsread, string sKey)
-            {
-                var des = new DESCryptoServiceProvider
-                {
-                    Key = Encoding.ASCII.GetBytes(sKey),
-                    IV = Encoding.ASCII.GetBytes(sKey)
-                };
-
-                des.Padding = PaddingMode.Zeros;
-
-                var sOutputFilename = new MemoryStream();
-                var desdecrypt = des.CreateDecryptor();
-                var cryptostreamDecr = new CryptoStream(fsread, desdecrypt, CryptoStreamMode.Read);
-
-                var fsDecrypted = new StreamWriter(sOutputFilename);
-                fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
-                fsDecrypted.Flush();
-                fsDecrypted.Close();
-
-
-                return sOutputFilename;
-            }
-
-        }
         private async void Form1_Load(object sender, EventArgs e)
         {
 
-            Microphone_Init();
 
-            var Connection_Ip = ConfigurationManager.AppSettings.Get("Connection_Ip");
+            Microphone_Init();
 
             //создаем поток для прослушивания
             Thread THREAD_Sound_Listen = new Thread(new ThreadStart(Listening));
@@ -137,9 +127,9 @@ namespace Double
                     using (var ms = new MemoryStream(picdata))
                     {
 
-              //           var key = "cR??7[?|";
-              
-              //        cryptor.Decrypt(ms, key);
+                        //           var key = "cR??7[?|";
+
+                        //        cryptor.Decrypt(ms, key);
                         pictureBox1.Image = new Bitmap(ms);
 
                     }
@@ -188,7 +178,6 @@ namespace Double
             }
 
         }
-    
 
         private void Form1_FormClosed(object sender, FormClosedEventArgs e)
         {
@@ -270,7 +259,7 @@ namespace Double
 
         }
 
-private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
+        private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEventArgs eventArgs)
         {
             var bmp = new Bitmap(eventArgs.Frame, 1920, 1080);
             try
@@ -290,7 +279,7 @@ private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEve
                     var bytes = ms.ToArray();
 
                     Array.Resize(ref bytes, bytes.Length + 1);
-                    bytes[bytes.Length-1] = 1;
+                    bytes[bytes.Length - 1] = 1;
 
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
 
@@ -308,7 +297,7 @@ private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEve
                     var bytes = ms.ToArray();
 
                     Array.Resize(ref bytes, bytes.Length + 1);
-                    bytes[bytes.Length-1] = 2;
+                    bytes[bytes.Length - 1] = 2;
 
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
 
@@ -326,7 +315,7 @@ private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEve
                     var bytes = ms.ToArray();
 
                     Array.Resize(ref bytes, bytes.Length + 1);
-                    bytes[bytes.Length-1] = 3;
+                    bytes[bytes.Length - 1] = 3;
 
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
 
@@ -344,7 +333,7 @@ private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEve
                     var bytes = ms.ToArray();
 
                     Array.Resize(ref bytes, bytes.Length + 1);
-                    bytes[bytes.Length-1] = 4;
+                    bytes[bytes.Length - 1] = 4;
 
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
 
@@ -362,7 +351,7 @@ private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEve
                     var bytes = ms.ToArray();
 
                     Array.Resize(ref bytes, bytes.Length + 1);
-                    bytes[bytes.Length-1] = 5;
+                    bytes[bytes.Length - 1] = 5;
 
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
                     Thread.Sleep(0);
@@ -380,6 +369,5 @@ private static void VideoSource_NewFrame(object sender, AForge.Video.NewFrameEve
             var host = Dns.GetHostEntry(Dns.GetHostName());
             MessageBox.Show(string.Join("\n", host.AddressList.Where(i => i.AddressFamily == AddressFamily.InterNetwork)));
         }
-
     }
 }

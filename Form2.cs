@@ -236,17 +236,19 @@ namespace Double
 
                 label6.Text = dd + ", " + dt.Day.ToString() + " " + mt;
 
-            }
+                if (form3_Created) {
+                    if (f3.IsDisposed)
+                    {
+                        this.Close();
+                    }
+                }
 
             }
 
-        Form1 f1;
-        private void button1_Click(object sender, EventArgs e)
-        {
-         f1 = new Form1();
-            f1.Show();
-        }
+            }
 
+        Form3 f3;
+        static bool form3_Created = false;
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
             UpdateAppSettings("My_Name", textBox1.Text);
@@ -311,7 +313,12 @@ namespace Double
             string s1 = new string(cur_Set_char);
             UpdateAppSettings("My_Settings", s1);
         }
-
-
+        private void button1_Click_1(object sender, EventArgs e)
+        {
+            f3 = new Form3();
+            form3_Created = true;
+            f3.Show();
+            this.Hide();
+        }
     }
 }
