@@ -20,6 +20,22 @@ namespace Double
         {
             InitializeComponent();
         }
+
+        Form1 f1;
+
+        private void Form4_Load(object sender, EventArgs e)
+        {
+            UdpClient client = new UdpClient("192.168.1.59", 1200);
+            string ch = "192.168.1.161";
+            byte[] data = Encoding.Unicode.GetBytes(ch);
+            client.Send(data, data.Length);
+            client.Close();
+
+            f1 = new Form1();
+            this.Hide();
+            f1.Show();
+
+        }
     }
 
 
