@@ -93,7 +93,6 @@ namespace Double
         private async void Form1_Load(object sender, EventArgs e)
         {
 
-
             Microphone_Init();
 
             //создаем поток для прослушивания

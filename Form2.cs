@@ -249,6 +249,9 @@ namespace Double
 
         Form3 f3;
         static bool form3_Created = false;
+
+        Form4 f4;
+        static bool form4_Created = false;
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
             UpdateAppSettings("My_Name", textBox1.Text);
@@ -318,6 +321,14 @@ namespace Double
             f3 = new Form3();
             form3_Created = true;
             f3.Show();
+            this.Hide();
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            f4 = new Form4();
+            form4_Created = true;
+            f4.Show();
             this.Hide();
         }
     }
