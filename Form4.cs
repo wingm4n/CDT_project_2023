@@ -25,7 +25,13 @@ namespace Double
 
         private void Form4_Load(object sender, EventArgs e)
         {
-            UdpClient client = new UdpClient("192.168.1.59", 1200);
+           
+
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            UdpClient client = new UdpClient(textBox1.Text, 1200);
             string ch = "192.168.1.161";
             byte[] data = Encoding.Unicode.GetBytes(ch);
             client.Send(data, data.Length);
@@ -34,7 +40,6 @@ namespace Double
             f1 = new Form1();
             this.Hide();
             f1.Show();
-
         }
     }
 
