@@ -92,7 +92,7 @@ namespace Double
             {
                 await DelayAsync();
                 timer++;
-                label1.Text = "Ожидание подключения, " + timer.ToString() + " сек.";
+                label1.Text = "Ожидание подключения, " + timer.ToString() + " с.";
 
                 if (clientConnected)
                 { break; }

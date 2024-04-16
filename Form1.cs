@@ -12,6 +12,7 @@ using System.Drawing.Imaging;
 using AForge.Video.DirectShow;
 using NAudio.Wave;
 using System.Text;
+using AForge.Video;
 
 namespace Double
 {
@@ -39,6 +40,9 @@ namespace Double
         private static int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
         private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
 
+        Thread THREAD_Sound_Listen;
+        Thread THREAD_Sound_Send;
+        Thread THREAD_Video_Send;
 
 
 
@@ -79,7 +83,17 @@ namespace Double
             Audio_Record.WaveFormat = new WaveFormat(8000, 16, 1);
             //добавляем код обработки нашего голоса, поступающего на микрофон
             Audio_Record.DataAvailable += Voice_Input;
+        }
             //создаем поток для прослушивания входящего звука
+            
+        
+        private async void Form1_Load(object sender, EventArgs e)
+        {
+
+            trackBar1.Hide();
+
+            Microphone_Init();
+
             Audio_Play = new WaveOut();
             //создаем поток для буферного потока и определяем у него такой же формат как и потока с микрофона
             Audio_bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
@@ -89,21 +103,16 @@ namespace Double
             Audio_Sender = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Audio_Receiver = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             Audio_connection = true;
-        }
-        private async void Form1_Load(object sender, EventArgs e)
-        {
-
-            Microphone_Init();
 
             //создаем поток для прослушивания
-            Thread THREAD_Sound_Listen = new Thread(new ThreadStart(Listening));
+            THREAD_Sound_Listen = new Thread(new ThreadStart(Listening));
             //запускаем его
             THREAD_Sound_Listen.Start();
 
-            Thread THREAD_Sound_Send = new Thread(new ThreadStart(Audio_Record.StartRecording));
+            THREAD_Sound_Send = new Thread(new ThreadStart(Audio_Record.StartRecording));
             THREAD_Sound_Send.Start();
 
-            Thread THREAD_Video_Send = new Thread(new ThreadStart(SenderMain));
+            THREAD_Video_Send = new Thread(new ThreadStart(SenderMain));
             THREAD_Video_Send.Start();
 
             Thread.Sleep(0);
@@ -244,17 +253,19 @@ namespace Double
         }
 
 
+        static VideoCaptureDevice videoSource;
+        static FilterInfoCollection videoDevices;
+
         static void SenderMain()
         {
             var consumerIp = ConfigurationManager.AppSettings.Get("Connection_Ip");
             var consumerPort = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
             consumerEndPoint = new IPEndPoint(IPAddress.Parse(consumerIp), My_Video_Port);
 
-            FilterInfoCollection videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
-            VideoCaptureDevice videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
+            videoDevices = new FilterInfoCollection(FilterCategory.VideoInputDevice);
+            videoSource = new VideoCaptureDevice(videoDevices[0].MonikerString);
             videoSource.NewFrame += VideoSource_NewFrame;
             videoSource.Start();
-
 
         }
 
@@ -367,6 +378,69 @@ namespace Double
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
             MessageBox.Show(string.Join("\n", host.AddressList.Where(i => i.AddressFamily == AddressFamily.InterNetwork)));
+        }
+
+        bool isMuted = false; //get from appsets
+        private void pictureBox6_Click(object sender, EventArgs e)
+        {
+            if (isMuted)
+            {
+                Microphone_Init(); Audio_Record.StartRecording(); isMuted = false;
+            }
+            else
+            {
+                Audio_Record.StopRecording(); Audio_Record.Dispose(); isMuted = true;
+            }
+        }
+
+        bool isStoppedVideo = false; //appsettings
+        private void pictureBox7_Click(object sender, EventArgs e)
+        {
+            if (isStoppedVideo)
+            {
+                videoSource.Start(); isStoppedVideo = false;
+            }
+            else
+            {
+                videoSource.Stop(); isStoppedVideo = true;
+            }
+        }
+
+        private void pictureBox10_Click(object sender, EventArgs e)
+        {
+            Audio_connection = false;    //THREAD_Sound_Listen.Abort();
+            Audio_Record.StopRecording(); Audio_Record.Dispose();//THREAD_Sound_Send.Abort();
+            videoSource.Stop(); //THREAD_Video_Send.Abort();
+
+            THREAD_Sound_Listen.Abort();
+            THREAD_Sound_Send.Abort();
+            THREAD_Video_Send.Abort();
+
+            this.Close();
+
+        }
+
+        bool istrackBarShown = false;
+        private void pictureBox8_Click(object sender, EventArgs e)
+        {
+            if (istrackBarShown)
+            {
+                trackBar1.Hide(); istrackBarShown = false;
+            }
+            else
+            {
+                trackBar1.Show(); istrackBarShown = true;
+            }
+        }
+
+        private void pictureBox9_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+            Audio_Play.Volume = trackBar1.Value / 10;
         }
     }
 }
