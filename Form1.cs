@@ -51,24 +51,26 @@ namespace Double
             InitializeComponent();
 
             pictureBox5.Controls.Add(pictureBox6);
-            pictureBox6.Location = new Point(0, 0);
+            pictureBox6.Location = new Point(228, 0);
             pictureBox6.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox7);
-            pictureBox7.Location = new Point(200, 0);
+            pictureBox7.Location = new Point(556, 0);
             pictureBox7.BackColor = Color.Transparent;
 
+            pictureBox5.Controls.Add(pictureBox10);
+            pictureBox10.Location = new Point(884, 0);
+            pictureBox10.BackColor = Color.Transparent;
+
             pictureBox5.Controls.Add(pictureBox8);
-            pictureBox8.Location = new Point(400, 0);
+            pictureBox8.Location = new Point(1262, 0);
             pictureBox8.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox9);
-            pictureBox9.Location = new Point(600, 0);
+            pictureBox9.Location = new Point(1590, 0);
             pictureBox9.BackColor = Color.Transparent;
 
-            pictureBox5.Controls.Add(pictureBox10);
-            pictureBox10.Location = new Point(800, 0);
-            pictureBox10.BackColor = Color.Transparent;
+            
 
         }
 
@@ -202,8 +204,6 @@ namespace Double
                     }
                 }
 
-
-                packageCount++;
             }
 
         }

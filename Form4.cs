@@ -29,10 +29,39 @@ namespace Double
 
         }
 
+        static void UpdateAppSettings(string key, string value)
+        {
+            try
+            {
+                var configFile = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                var settings = configFile.AppSettings.Settings;
+                if (settings[key] == null)
+                {
+                    settings.Add(key, value);
+                }
+                else
+                {
+                    settings[key].Value = value;
+                }
+                configFile.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection(configFile.AppSettings.SectionInformation.Name);
+            }
+            catch (ConfigurationErrorsException)
+            {
+                Console.WriteLine("Error writing app settings");
+            }
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
+
+            UpdateAppSettings("Connection_IP",textBox1.Text);
+            
             UdpClient client = new UdpClient(textBox1.Text, 1200);
-            string ch = "192.168.1.161";
+
+
+
+            string ch = ConfigurationManager.AppSettings.Get("My_IP");
             byte[] data = Encoding.Unicode.GetBytes(ch);
             client.Send(data, data.Length);
             client.Close();

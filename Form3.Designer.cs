@@ -57,7 +57,7 @@
             this.label1.BackColor = System.Drawing.Color.White;
             this.label1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label1.Font = new System.Drawing.Font("Nexa-Trial", 16.2F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label1.Location = new System.Drawing.Point(178, 148);
+            this.label1.Location = new System.Drawing.Point(177, 148);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(437, 36);
             this.label1.TabIndex = 1;
