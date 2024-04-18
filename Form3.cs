@@ -60,17 +60,17 @@ namespace Double
             //{
 
 
-                byte[] data = server.Receive(ref ip);
-                string ch = Encoding.Unicode.GetString(data, 0, data.Length);
+            byte[] data = server.Receive(ref ip);
+            string ch = Encoding.Unicode.GetString(data, 0, data.Length);
 
-                if (ch.Length > 0)
-                {
-                    UpdateAppSettings("Connection_IP", ch);
-                    server.Close();
+            if (ch.Length > 0)
+            {
+                UpdateAppSettings("Connection_IP", ch);
+                server.Close();
 
-                    clientConnected = true;
-                    
-                }
+                clientConnected = true;
+
+            }
 
             //}
         }
@@ -110,5 +110,24 @@ namespace Double
 
 
         }
+
+        private void pictureBox1_DoubleClick(object sender, EventArgs e)
+        {
+            Clipboard.SetText(ConfigurationManager.AppSettings.Get("My_IP"));
+            System.Windows.Forms.ToolTip t1 = new System.Windows.Forms.ToolTip();
+            t1.SetToolTip(pictureBox1, "Скопировано");
+        }
+
+        private void pictureBox1_MouseHover(object sender, EventArgs e)
+        {
+            System.Windows.Forms.ToolTip t = new System.Windows.Forms.ToolTip();
+            t.SetToolTip(pictureBox1, "Кликните два раза для копирования ip");
+        }
+
     }
+
+
+
 }
+
+
