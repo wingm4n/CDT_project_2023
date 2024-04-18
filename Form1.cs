@@ -41,6 +41,7 @@ namespace Double
         private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
 
         private bool isVideoAlive = true;
+        //private static int dataOffset = 1;
 
         Thread THREAD_Sound_Listen;
         Thread THREAD_Sound_Send;
@@ -125,6 +126,8 @@ namespace Double
             Audio_Play = new WaveOut();
             //создаем поток для буферного потока и определяем у него такой же формат как и потока с микрофона
             Audio_bufferStream = new BufferedWaveProvider(new WaveFormat(8000, 16, 1));
+
+            Audio_bufferStream.DiscardOnBufferOverflow = true;
             //привязываем поток входящего звука к буферному потоку
             Audio_Play.Init(Audio_bufferStream);
             //сокет для отправки звука
@@ -287,7 +290,9 @@ namespace Double
                     //получено данных
                     int received = Audio_Receiver.ReceiveFrom(data, ref remoteIp);
                     //добавляем данные в буфер, откуда Audio_Play будет воспроизводить звук
+                    
                     Audio_bufferStream.AddSamples(data, 0, received);
+                    
                     Thread.Sleep(10);
                 }
                 catch (SocketException ex)
@@ -395,7 +400,7 @@ namespace Double
                 using (var ms = new MemoryStream())
                 {
 
-                    RectangleF cloneRect = new RectangleF(0, 865, 1920, 216);
+                    RectangleF cloneRect = new RectangleF(0, 865, 1920, 215);
                     System.Drawing.Imaging.PixelFormat format =
                         bmp.PixelFormat;
                     Bitmap cloneBitmap = bmp.Clone(cloneRect, format);
@@ -407,8 +412,10 @@ namespace Double
                     bytes[bytes.Length - 1] = 5;
 
                     UdpClient.Send(bytes, bytes.Length, consumerEndPoint);
-                    Thread.Sleep(0);
+                    
                 }
+
+                Thread.Sleep(0);
 
             }
             catch (Exception e)
