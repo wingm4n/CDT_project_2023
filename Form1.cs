@@ -40,6 +40,8 @@ namespace Double
         private static int Conn_Video_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Video_Port"));
         private static int Conn_Audio_Port = int.Parse(ConfigurationManager.AppSettings.Get("Conn_Audio_Port"));
 
+        private bool isVideoAlive = true;
+
         Thread THREAD_Sound_Listen;
         Thread THREAD_Sound_Send;
         Thread THREAD_Video_Send;
@@ -51,27 +53,30 @@ namespace Double
             InitializeComponent();
 
             pictureBox5.Controls.Add(pictureBox6);
-            pictureBox6.Location = new Point(228, 0);
+            pictureBox6.Location = new Point(228, 58);
             pictureBox6.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox7);
-            pictureBox7.Location = new Point(556, 0);
+            pictureBox7.Location = new Point(556, 58);
             pictureBox7.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox10);
-            pictureBox10.Location = new Point(884, 0);
+            pictureBox10.Location = new Point(884, 33);
             pictureBox10.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox8);
-            pictureBox8.Location = new Point(1262, 0);
+            pictureBox8.Location = new Point(1262, 58);
             pictureBox8.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox9);
-            pictureBox9.Location = new Point(1590, 0);
+            pictureBox9.Location = new Point(1590, 58);
             pictureBox9.BackColor = Color.Transparent;
 
-            
 
+            if (ConfigurationManager.AppSettings.Get("My_settings")[0] == '1') { isMuted = true; pictureBox13.Show(); } else { isMuted = false; pictureBox13.Hide(); };
+            if (ConfigurationManager.AppSettings.Get("My_settings")[1] == '1') { isStoppedVideo = true; pictureBox14.Show(); label1.Show(); } else { isStoppedVideo = false; pictureBox14.Hide(); label1.Hide(); };
+
+            
         }
 
 
@@ -138,20 +143,24 @@ namespace Double
             THREAD_Video_Send = new Thread(new ThreadStart(SenderMain));
             THREAD_Video_Send.Start();
 
+            //
+
             Thread.Sleep(0);
 
 
             var Video_Recieve = new UdpClient(Conn_Video_Port);
 
-            byte packageCount;
+            byte packageCount = 0;
 
             while (true)
             {
                 var data = await Video_Recieve.ReceiveAsync();
                 byte[] picdata = data.Buffer;
+                
                 packageCount = picdata[picdata.Length - 1];
                 Array.Resize(ref picdata, picdata.Length - 1);
 
+                
 
                 if (packageCount == 1)
                 {
@@ -161,7 +170,10 @@ namespace Double
                         //           var key = "cR??7[?|";
 
                         //        cryptor.Decrypt(ms, key);
-                        pictureBox1.Image = new Bitmap(ms);
+                        
+               
+                         pictureBox1.Image = new Bitmap(ms); 
+                        
 
                     }
                 }
@@ -170,7 +182,9 @@ namespace Double
                 {
                     using (var ms = new MemoryStream(picdata))
                     {
-                        pictureBox2.Image = new Bitmap(ms);
+                
+                        pictureBox2.Image = new Bitmap(ms); 
+
 
                     }
                 }
@@ -180,7 +194,9 @@ namespace Double
                     using (var ms = new MemoryStream(picdata))
                     {
 
-                        pictureBox3.Image = new Bitmap(ms);
+               
+                         pictureBox3.Image = new Bitmap(ms);
+
 
                     }
                 }
@@ -190,7 +206,10 @@ namespace Double
                     using (var ms = new MemoryStream(picdata))
                     {
 
-                        pictureBox4.Image = new Bitmap(ms);
+                        //if (isStoppedVideo) { pictureBox4.BackColor = Color.DarkGray; }
+                       pictureBox4.Image = new Bitmap(ms); 
+                      
+                       
 
                     }
                 }
@@ -200,9 +219,12 @@ namespace Double
                     using (var ms = new MemoryStream(picdata))
                     {
 
+                        
                         pictureBox5.Image = new Bitmap(ms);
+
                     }
                 }
+
 
             }
 
@@ -406,11 +428,11 @@ namespace Double
         {
             if (isMuted)
             {
-                Microphone_Init(); Audio_Record.StartRecording(); isMuted = false;
+                Microphone_Init(); Audio_Record.StartRecording(); isMuted = false; pictureBox13.Hide();
             }
             else
             {
-                Audio_Record.StopRecording(); Audio_Record.Dispose(); isMuted = true;
+                Audio_Record.StopRecording(); Audio_Record.Dispose(); isMuted = true; pictureBox13.Show();
             }
         }
 
@@ -419,11 +441,11 @@ namespace Double
         {
             if (isStoppedVideo)
             {
-                videoSource.Start(); isStoppedVideo = false;
+                videoSource.Start(); isStoppedVideo = false; pictureBox14.Hide(); label1.Hide(); 
             }
             else
             {
-                videoSource.Stop(); isStoppedVideo = true;
+                videoSource.Stop(); isStoppedVideo = true; pictureBox14.Show(); label1.Show(); 
             }
         }
 
@@ -461,7 +483,12 @@ namespace Double
 
         private void trackBar1_Scroll(object sender, EventArgs e)
         {
-            Audio_Play.Volume = trackBar1.Value / 10;
+            Audio_Play.Volume = (float)trackBar1.Value / 10;
+        }
+
+        private void label1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
