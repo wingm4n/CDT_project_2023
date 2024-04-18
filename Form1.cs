@@ -54,30 +54,45 @@ namespace Double
             InitializeComponent();
 
             pictureBox5.Controls.Add(pictureBox6);
-            pictureBox6.Location = new Point(228, 58);
+            pictureBox6.Location = new Point(485, 58); //mute
             pictureBox6.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox7);
-            pictureBox7.Location = new Point(556, 58);
+            pictureBox7.Location = new Point(685, 58); //stop Video
             pictureBox7.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox10);
-            pictureBox10.Location = new Point(884, 33);
+            pictureBox10.Location = new Point(885, 33); //end call
             pictureBox10.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox8);
-            pictureBox8.Location = new Point(1262, 58);
+            pictureBox8.Location = new Point(1135, 58); //volume
             pictureBox8.BackColor = Color.Transparent;
 
             pictureBox5.Controls.Add(pictureBox9);
-            pictureBox9.Location = new Point(1590, 58);
+            pictureBox9.Location = new Point(1335, 58); //settings
             pictureBox9.BackColor = Color.Transparent;
 
+            pictureBox5.Controls.Add(pictureBox13);
+            pictureBox13.Location = new Point(585, 40); //red dots
+            pictureBox13.BackColor = Color.Transparent;
 
-            if (ConfigurationManager.AppSettings.Get("My_settings")[0] == '1') { isMuted = true; pictureBox13.Show(); } else { isMuted = false; pictureBox13.Hide(); };
-            if (ConfigurationManager.AppSettings.Get("My_settings")[1] == '1') { isStoppedVideo = true; pictureBox14.Show(); label1.Show(); } else { isStoppedVideo = false; pictureBox14.Hide(); label1.Hide(); };
+            pictureBox5.Controls.Add(pictureBox14);
+            pictureBox14.Location = new Point(785, 40);
+            pictureBox14.BackColor = Color.Transparent;
 
-            
+
+            isMuted = false;
+            isStoppedVideo = false;
+            pictureBox13.Hide(); pictureBox14.Hide() ; label1.Hide();
+           // if (ConfigurationManager.AppSettings.Get("My_settings")[0] == '1') { isMuted = true; pictureBox13.Show(); } else { isMuted = false; pictureBox13.Hide(); };
+           // if (ConfigurationManager.AppSettings.Get("My_settings")[1] == '1') { isStoppedVideo = true; pictureBox14.Show(); label1.Show(); } else { isStoppedVideo = false; pictureBox14.Hide(); label1.Hide(); };
+            if (ConfigurationManager.AppSettings.Get("My_settings")[2] == '1') { label2.Text = ConfigurationManager.AppSettings.Get("My_Name"); } else { label2.Hide();  };
+            if (ConfigurationManager.AppSettings.Get("My_settings")[3] == '1') { label3.Text = ConfigurationManager.AppSettings.Get("My_IP"); } else { label3.Hide(); };
+
+            if ((ConfigurationManager.AppSettings.Get("My_settings")[2] == '0') && (ConfigurationManager.AppSettings.Get("My_settings")[3] == '0')) { pictureBox15.Hide();  };
+
+
         }
 
 
@@ -148,7 +163,15 @@ namespace Double
 
             //
 
-            Thread.Sleep(0);
+            Thread.Sleep(1000);
+
+            EventArgs a = new EventArgs();
+            if (ConfigurationManager.AppSettings.Get("My_settings")[0] == '1') { pictureBox7_Click(this, a); }
+
+            a = new EventArgs();
+            if (ConfigurationManager.AppSettings.Get("My_settings")[1] == '1') { pictureBox6_Click(this, a); };
+
+
 
 
             var Video_Recieve = new UdpClient(Conn_Video_Port);
@@ -430,7 +453,7 @@ namespace Double
             MessageBox.Show(string.Join("\n", host.AddressList.Where(i => i.AddressFamily == AddressFamily.InterNetwork)));
         }
 
-        bool isMuted = false; //get from appsets
+        bool isMuted; //get from appsets
         private void pictureBox6_Click(object sender, EventArgs e)
         {
             if (isMuted)
@@ -443,7 +466,7 @@ namespace Double
             }
         }
 
-        bool isStoppedVideo = false; //appsettings
+        bool isStoppedVideo; //appsettings
         private void pictureBox7_Click(object sender, EventArgs e)
         {
             if (isStoppedVideo)
